@@ -7,30 +7,12 @@
 // Version: 1.0
 //------------------------------------------------------------------------
 
-Params	
-	Numeric FastLength(12);
-	Numeric SlowLength(26);
-	Numeric MACDLength(9);
-	Numeric TrendLength(60);
+Params
 Vars
-	// **********************Indicators*********************//
-	NumericSeries DIF; 
-	Numeric DEA;
-	Numeric MACD;
-	
-	NumericSeries DIFMain;
-	NumericSeries DEAMain;
-	NumericSeries MidLine;
-	NumericSeries MA60;
-	
-	//***********************Analysis Vars******************//
-	Bool CurrentTrendRise;
-	Bool CurrentTrendFall;
-	Bool RiseIndicator;
-	Bool FallIndicator;
 	//***********************Signal Vars********************//
 	BoolSeries SigOneBuy;
 	BoolSeries SigOneSell;
+	NumericSeries signal;
 	
 	//***********************Strategy Vars******************//
 	Numeric Lots(1);
@@ -40,58 +22,11 @@ Vars
 	Bool ModifierLong;
 	Bool ModifierShort;
 	
-Begin
-	//*********************************Calculate Indicators**************************************//
-	DIF = XAverage( Close, FastLength ) - XAverage( Close, SlowLength ) ;	
-	DEA = XAverage(DIF, MACDLength);
-	MACD = DIF - DEA;
-	
-	DIFMain = MA60 + DIF * 3.9;
-	DEAMain = XAverage(DIFMain, MACDLength);
-	MidLine = XAverage(XAverage(C,10),10);
-	MA60 = XAverage(Close, 60);
-	
-	PlotNumeric("MidLine", MidLine);
-	PlotNumeric("MA60", MA60);
-	
-	//**********************************Trend Analysis*******************************************//
-	if (MACD > 0)
-	{
-		CurrentTrendRise = True;
-		CurrentTrendFall = False;
-	}
-	Else if (MACD < 0)
-	{
-		CurrentTrendRise = False;
-		CurrentTrendFall = True;
-	}
-	Else
-	{
-		CurrentTrendRise = True;
-		CurrentTrendFall = True;
-	}
-	
-	// Figure out current direction
-	if (Low[1] > Low[2] Or Close[1] >= Open[1])
-	{
-		RiseIndicator = True;
-	}
-	Else
-	{
-		RiseIndicator = False;
-	}
-	if (High[1] < High[2] Or Close[1] <= Open[1])
-	{
-		FallIndicator = True;
-	}
-	Else
-	{	
-		FallIndicator = False;
-	}
-	
+Begin	
 	//***********************************Signal Searching***************************************//
-	// Find Signal One
-	if (CurrentTrendFall And RiseIndicator And High >= High[1] And Close <= Open)
+	signal = SignalSearching();
+	
+	if (signal < 0)
 	{
 		SigOneSell = True;
 	}
@@ -99,7 +34,7 @@ Begin
 	{
 		SigOneSell = False;
 	}
-	if (CurrentTrendRise And FallIndicator And Low <= Low[1] And Close >= Open)
+	if (signal > 0)
 	{
 		SigOneBuy = True;
 	}
