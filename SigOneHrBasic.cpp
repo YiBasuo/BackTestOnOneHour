@@ -106,10 +106,6 @@ Begin
 		BuyToCover(Lots, High[1]);
 	}
 	//***********************************************************//
-	
-	PlotString("sig", Text(signal), Low - 25);
-	PlotString("tp", Text(triggeredPrice), Low - 50);
-	PlotString("ap", Text(abortPrice), Low - 75);
 End
 
 
