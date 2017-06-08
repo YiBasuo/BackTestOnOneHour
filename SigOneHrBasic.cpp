@@ -13,6 +13,8 @@ Vars
 	BoolSeries SigOneBuy;
 	BoolSeries SigOneSell;
 	NumericSeries signal;
+	NumericSeries triggeredPrice;
+	NumericSeries abortPrice;
 	
 	//***********************Strategy Vars******************//
 	Numeric Lots(1);
@@ -25,23 +27,6 @@ Vars
 Begin	
 	//***********************************Signal Searching***************************************//
 	signal = SignalSearching();
-	
-	if (signal < 0)
-	{
-		SigOneSell = True;
-	}
-	else
-	{
-		SigOneSell = False;
-	}
-	if (signal > 0)
-	{
-		SigOneBuy = True;
-	}
-	else
-	{
-		SigOneBuy = False;
-	}
 	
 	//**********************************Involve Modifier***************************************//
 	// Open Modifier
@@ -57,42 +42,71 @@ Begin
 	}
 	
 	//**********************************Run Strategy******************************************//
-	// Test SigOne
-	if (SigOneBuy[1] And ModifierLong)
+	if (signal == 1)
+	{
+		triggeredPrice = High;
+		abortPrice = Low;
+	}
+	else if (signal == -1)
+	{
+		triggeredPrice = Low;
+		abortPrice = High;
+	}
+	
+	//**********************************Involve Modifier***************************************//
+	ModifierLong = False;
+	ModifierShort = False;
+	if (Low > Low[1])
+	{
+		ModifierLong = True;
+	}
+	if (High < High[1])
+	{
+		ModifierShort = True;
+	}
+	
+	//**********************************Run Strategy******************************************//
+	if (signal[1] > 0 And ModifierLong)
 	{
 		// Exceed the prev bar, open buy
-		if (High > High[1])
+		if (High > triggeredPrice[1])
 		{
-			Buy(Lots, High[1]);
+			Buy(Lots, triggeredPrice[1]);
 		}
 		// If the current bar does not trigger the signal, move to the next bar
-		if (High < High[1] And Low > Low[1])
+		if (High < triggeredPrice[1] And Low > abortPrice[1])
 		{
-			SigOneBuy = True;
+			signal = 1;
+			triggeredPrice = High;
+			abortPrice = Low;
 		}
 	}
+	
 	if (Low < Low[1] And MarketPosition == 1)
 	{
 		Sell(Lots, Low[1]);
 	}
 	
-	if (SigOneSell[1] And ModifierShort)
+	if (signal[1] < 0 And ModifierShort)
 	{
 		// Exceed the prev bar, open buy
-		if (Low < Low[1])
+		if (Low < triggeredPrice[1])
 		{
-			SellShort(Lots, Low[1]);
+			SellShort(Lots, triggeredPrice[1]);
 		}
 		// If the current bar does not trigger the signal, move to the next bar
-		if (Low > Low[1] And High < High[1])
+		if (Low > triggeredPrice And High < abortPrice)
 		{
-			SigOneSell = True;
+			signal = -1;
+			triggeredPrice = Low;
+			abortPrice = High;
 		}
 	}
+	
 	if (High > High[1] And MarketPosition == -1)
 	{
 		BuyToCover(Lots, High[1]);
-	}	
+	}
 	//***********************************************************//
 End
 
