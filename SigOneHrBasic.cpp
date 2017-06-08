@@ -42,6 +42,8 @@ Begin
 	}
 	
 	//**********************************Run Strategy******************************************//
+	triggeredPrice = 0;
+	abortPrice = 0;
 	if (signal == 1)
 	{
 		triggeredPrice = High;
@@ -69,16 +71,28 @@ Begin
 	if (signal[1] > 0 And ModifierLong)
 	{
 		// Exceed the prev bar, open buy
-		if (High > triggeredPrice[1])
+		if (High > High[1])
 		{
-			Buy(Lots, triggeredPrice[1]);
+			Buy(Lots, High[1]);
 		}
 		// If the current bar does not trigger the signal, move to the next bar
-		if (High < triggeredPrice[1] And Low > abortPrice[1])
+		if (High < High[1] And Low > Low[1])
 		{
 			signal = 1;
-			triggeredPrice = High;
-			abortPrice = Low;
+		}
+	}
+	
+	if (signal[1] < 0 And ModifierShort)
+	{
+		// Exceed the prev bar, open buy
+		if (Low < Low[1])
+		{
+			SellShort(Lots, Low[1]);
+		}
+		// If the current bar does not trigger the signal, move to the next bar
+		if (Low > Low[1] And High < High[1])
+		{
+			signal = -1;
 		}
 	}
 	
@@ -87,27 +101,15 @@ Begin
 		Sell(Lots, Low[1]);
 	}
 	
-	if (signal[1] < 0 And ModifierShort)
-	{
-		// Exceed the prev bar, open buy
-		if (Low < triggeredPrice[1])
-		{
-			SellShort(Lots, triggeredPrice[1]);
-		}
-		// If the current bar does not trigger the signal, move to the next bar
-		if (Low > triggeredPrice And High < abortPrice)
-		{
-			signal = -1;
-			triggeredPrice = Low;
-			abortPrice = High;
-		}
-	}
-	
 	if (High > High[1] And MarketPosition == -1)
 	{
 		BuyToCover(Lots, High[1]);
 	}
 	//***********************************************************//
+	
+	PlotString("sig", Text(signal), Low - 25);
+	PlotString("tp", Text(triggeredPrice), Low - 50);
+	PlotString("ap", Text(abortPrice), Low - 75);
 End
 
 
