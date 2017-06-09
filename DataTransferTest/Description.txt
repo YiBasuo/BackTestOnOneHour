@@ -1,0 +1,9 @@
+These Four files are used to test TB database.
+
+function:
+	ReadValueFromDB: convert the string to a value.
+	
+Method:
+	SigOneHrBasic: Benchmark method.
+	PreComputeSignal: calculate the signal and save them to database. Load this method first.
+	TestDataTransfer: read data from profile and operate on them. The trading history should be completely the same as SigOneHrBasic.
